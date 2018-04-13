@@ -9,6 +9,7 @@ class Parser
 		@ip = 0
 		@lm = 0
 		@rm = 0
+		@tb = false
 		@name = ""
 		@section = ""
 		@date = ""
@@ -30,6 +31,7 @@ class Parser
 			#'.CN' => [:CN, 1],
 			'.IF' => [:IF, 1],
 			'.NP' => [:NP, 0],
+			'.TB' => [:TB, 1],
 		}
 
 
@@ -106,17 +108,27 @@ class Parser
 			end
 		}
 
-		# something path-like?
-		x = x.gsub(/([\$][\/][A-Za-z0-9:\/.]*)/, '<tt>\1</tt>')
 
 		x = x.gsub(/(``|''|\.\.\.|`|'|--)/, @html_map)
+
+
+		if @sh == "Files" && x =~ /-/
+			args = x.split(/\s+-\s+/, 2)
+			args.each {|xx| xx.strip! }
+
+			x = "<dl><dt><tt>#{args[0]}</tt></dt><dd>#{args[1]}</dd></dl>"
+
+		else
+			# something path-like?
+			x = x.gsub(/([\$][\/][A-Za-z0-9:\/.]*)/, '<tt>\1</tt>')
+		end
 
 		if @sh == "See Also"
 			# help(C), manps(CT), manuals(F), whatis(CT)
 			args = x.split(/,\s+/)
 			begin
 				args = args.map {|xx|
-					raise "" unless xx =~ /^(\w+)\((\w+)\)$/
+					raise "" unless xx =~ /^([A-Za-z][A-Za-z0-9.]+)\((\w+)\)$/
 					"<a href=\"/man.#{$2}/#{$1}.html\">#{xx}</a>"
 				}	
 				x = args.join(', ')		
@@ -126,8 +138,6 @@ class Parser
 		end
 
 
-		# ellipsis
-		#x = x.gsub(/\.\.\./, '&#8230;')
 		return x
 	end
 
@@ -143,6 +153,10 @@ class Parser
 
 		# remove <p></p>
 		@buffer.gsub!(/\<p\>\n*\<\/p\>/, '')
+
+		# merge adjacent dl lists.
+		@buffer.gsub!(/\<\/dl\>\n*\<dl\>/, "\n")
+		@buffer.gsub!(/\<\/dl\>\n*\<br \/\>\n*\<dl\>/, "\n")
 		return @buffer
 	end
 
@@ -159,11 +173,13 @@ class Parser
 
 	def end_block()
 		puts "</tt>" unless @af
+		puts '</span>' if @tb
 		puts "</p>" if @p
 		puts "</div>" if @ip > 0
 		@ip = 0
 		@p = false
 		@af = true
+		@tb = false
 	end
 
 	def process(line)
@@ -270,7 +286,17 @@ class Parser
 
 	def BR(argv)
 		n = argv.empty? ? 1 : argv[0].to_i
-		puts "<br />" * n
+
+		if @tb
+			puts '</span>'
+			@tb = false
+			if @p then
+				puts '</p>'
+				p
+			end
+		else
+			puts "<br />" * n
+		end
 	end
 
 	def RC(argv)
@@ -296,6 +322,15 @@ class Parser
 	end
 
 
+	def TB(argv)
+		# .TB n
+		n = argv[0].to_i
+		puts '</span>' if @tb
+		style = "left: #{n}ex; display: inline-block; position: absolute;"
+		print "<span style=\"#{style}\">"
+		@tb = true
+	end
+
 end
 
 
@@ -304,7 +339,7 @@ end
 p = Parser.new
 
 
-ARGF.each_line("\r") {|line| p.process(line) }
+ARGF.each_line {|line| p.process(line) }
 
 
 puts p.finish()
