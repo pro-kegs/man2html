@@ -65,13 +65,13 @@ class Parser
 		<head>
 		<meta charset="utf-8" />
 		<title>#{@name}(#{@section})</title>
-
-		<link rel="stylesheet" type="text/css" href="html.css" />
+		<style>#{IO.read("man2html.css")}</style>
 		</head>
 		<body>
 		<header></header>
 		EOF
 
+#		<link rel="stylesheet" type="text/css" href="html.css" />
 	end
 
 	def footer()
@@ -106,10 +106,6 @@ class Parser
 			end
 		}
 
-
-		# ``...'' -> curly quotes + tt
-		#x = x.gsub(/``(.*?)''/, '&#8220;<tt>\1</tt>&#8221;')
-
 		# something path-like?
 		x = x.gsub(/([\$][\/][A-Za-z0-9:\/.]*)/, '<tt>\1</tt>')
 
@@ -121,7 +117,7 @@ class Parser
 			begin
 				args = args.map {|xx|
 					raise "" unless xx =~ /^(\w+)\((\w+)\)$/
-					"<a href=\"#{$2}/#{$1}.html\">#{xx}</a>"
+					"<a href=\"/man.#{$2}/#{$1}.html\">#{xx}</a>"
 				}	
 				x = args.join(', ')		
 			rescue Exception
