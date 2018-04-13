@@ -3,6 +3,8 @@ html {
   text-align: justify;
   margin-left: auto;
   margin-right: auto;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 section div {
@@ -18,11 +20,14 @@ div h2.IP {
 
 tt.pre {
   white-space: pre;
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 h1 {
   font-size: 150%;
   font-weight: normal;
+  font-variant: small-caps;
   margin: 0;
   padding: 0;
 }

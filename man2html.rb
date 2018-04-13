@@ -42,6 +42,7 @@ class Parser
 			"''" => '&#8221;',
 			'`' => '&#8216;',
 			"'" => '&#8217;',
+			"--" => '&#8212;',
 		}
 
 	end
@@ -112,7 +113,7 @@ class Parser
 		# something path-like?
 		x = x.gsub(/([\$][\/][A-Za-z0-9:\/.]*)/, '<tt>\1</tt>')
 
-		x = x.gsub(/(``|''|\.\.\.|`|')/, @html_map)
+		x = x.gsub(/(``|''|\.\.\.|`|'|--)/, @html_map)
 
 		if @sh == "See Also"
 			# help(C), manps(CT), manuals(F), whatis(CT)
