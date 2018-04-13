@@ -16,6 +16,9 @@ div h2.IP {
   padding: 0;
 }
 
+tt.pre {
+  white-space: pre;
+}
 
 h1 {
   font-size: 150%;

@@ -18,6 +18,7 @@ class Parser
 		@commands = {
 			'.PP' => [:PP, 1],
 			'.LM' => [:LM, 1],
+			'.RM' => [:RM, 1],
 			'.SH' => [:SH, 1],
 			'.DA' => [:DA, 1],
 			'.TH' => [:TH, 2],
@@ -26,7 +27,9 @@ class Parser
 			'.AF' => [:AF, 1],
 			'.SP' => [:SP, 1],
 			'.RC' => [:RC, 2],
-			'.CN' => [:CN, 1],
+			#'.CN' => [:CN, 1],
+			'.IF' => [:IF, 1],
+			'.NP' => [:NP, 0],
 		}
 
 
@@ -158,7 +161,7 @@ class Parser
 	end
 
 	def end_block()
-		puts "</pre>" unless @af
+		puts "</tt>" unless @af
 		puts "</p>" if @p
 		puts "</div>" if @ip > 0
 		@ip = 0
@@ -167,7 +170,7 @@ class Parser
 	end
 
 	def process(line)
-		line = line.strip
+		line = line.rstrip
 		return if line.empty?
 
 		if line[0] == "."
@@ -232,12 +235,10 @@ class Parser
 		puts "<h2 class=\"IP\">#{reformat(txt)}</h2>" unless txt == "" || txt == nil
 		p
 
-
 	end
 
 
 	def LM(argv)
-
 		unless argv.empty?
 			n = argv[0].to_i
 			@lm = @lm + n
@@ -247,10 +248,27 @@ class Parser
 	end
 
 	def RM(argv)
+		unless argv.empty?
+			n = argv[0].to_i
+			@rm = @rm - n
+			puts "</p>" if @p
+			p
+		end
 	end
 
 
 	def CN(argv)
+	end
+
+	def IF(argv)
+		# .IF n
+		# if < n lines remaining on page, do a .NP
+		# ignored.
+	end
+
+	def NP(argv)
+		#.NP
+		# New Page
 	end
 
 	def BR(argv)
@@ -270,13 +288,13 @@ class Parser
 
 		x = argv.empty? ? !@af : argv[0].to_i > 0
 		@af = x
-		puts @af ? "</pre>" : "<pre>"
+		puts @af ? '</tt>' : '<tt class="pre">'
 
 	end
 
 	def SP(argv)
 		# .SP [n]
-		n = argv.empty? ? argv[0].to_i : '1'
+		n = argv.empty? ? 1 : argv[0].to_i
 		puts " " * n
 	end
 
@@ -289,13 +307,7 @@ end
 p = Parser.new
 
 
-ARGF.each_line("\r") {|line|
-
-	line.strip!
-
-	next if line.empty?
-	p.process(line)
-}
+ARGF.each_line("\r") {|line| p.process(line) }
 
 
 puts p.finish()
